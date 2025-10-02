@@ -1,3 +1,23 @@
+"""
+Topological Sort Implementation
+
+Topological Sort (Topo Sort) is a linear ordering of vertices in a Directed Acyclic Graph (DAG).
+In this ordering, for every directed edge u → v, vertex u comes before vertex v.
+
+Key Properties:
+- Works only for Directed Acyclic Graphs (DAGs)
+- Cannot have cycles - if the graph has a cycle, topological sorting is not possible
+- Multiple valid orders may exist for the same graph
+
+Applications:
+- Task scheduling (e.g., course prerequisites, build systems)
+- Dependency resolution
+- Job scheduling with dependencies
+
+This module implements two approaches:
+1. DFS-based approach: Uses depth-first search with a stack
+2. Kahn's Algorithm: BFS-based approach using in-degree calculation
+"""
 
 from collections import deque
 
