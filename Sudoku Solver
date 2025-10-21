@@ -1,0 +1,94 @@
+class Solution {
+    // bitmasks: bit d (1..9) set => digit d is already used
+    private int[] rows = new int[9];
+    private int[] cols = new int[9];
+    private int[] boxes = new int[9];
+    private char[][] board;
+    private int fullMask = (1 << 10) - 2; // bits 1..9 set => 0b1111111110 == 1022
+
+    public void solveSudoku(char[][] board) {
+        this.board = board;
+        // initialize masks and list of empty cells
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                char ch = board[r][c];
+                if (ch != '.') {
+                    int d = ch - '0';
+                    int bit = 1 << d;
+                    rows[r] |= bit;
+                    cols[c] |= bit;
+                    boxes[boxIndex(r, c)] |= bit;
+                }
+            }
+        }
+        backtrack();
+    }
+
+    // returns true if solved
+    private boolean backtrack() {
+        int br = -1, bc = -1;
+        int bestCandidates = 10; // want minimum >0
+        int bestMask = 0;
+
+        // find empty cell with minimum candidates (MRV)
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                if (board[r][c] == '.') {
+                    int mask = candidatesMask(r, c);
+                    int cnt = Integer.bitCount(mask);
+                    if (cnt == 0) return false;       // dead end
+                    if (cnt < bestCandidates) {
+                        bestCandidates = cnt;
+                        br = r; bc = c;
+                        bestMask = mask;
+                        if (cnt == 1) break; // can't do better than 1
+                    }
+                }
+            }
+            if (bestCandidates == 1) break;
+        }
+
+        // if no empty cell found, solved
+        if (br == -1) return true;
+
+        // try candidates (iterate bits)
+        int mask = bestMask;
+        while (mask != 0) {
+            int pick = mask & -mask; // lowest set bit
+            int d = Integer.numberOfTrailingZeros(pick); // digit
+            mask -= pick;
+
+            placeDigit(br, bc, d);
+            if (backtrack()) return true;
+            removeDigit(br, bc, d);
+        }
+
+        return false;
+    }
+
+    private int candidatesMask(int r, int c) {
+        int b = boxIndex(r, c);
+        // digits available are ones not present in row|col|box
+        return (~(rows[r] | cols[c] | boxes[b])) & fullMask;
+    }
+
+    private void placeDigit(int r, int c, int d) {
+        int bit = 1 << d;
+        board[r][c] = (char) ('0' + d);
+        rows[r] |= bit;
+        cols[c] |= bit;
+        boxes[boxIndex(r, c)] |= bit;
+    }
+
+    private void removeDigit(int r, int c, int d) {
+        int bit = ~(1 << d);
+        board[r][c] = '.';
+        rows[r] &= bit;
+        cols[c] &= bit;
+        boxes[boxIndex(r, c)] &= bit;
+    }
+
+    private int boxIndex(int r, int c) {
+        return (r / 3) * 3 + (c / 3);
+    }
+}
